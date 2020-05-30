@@ -46,9 +46,24 @@ namespace quine_McCluskey.Framework
         /// Ezzel masszívan leegyszerűsíthető a folyamat. Az összevonás mindössze két sor összeadása, valamint ha nem volt összeadás, megállapíthatjuk
         /// hogy a sor egy prím implikáns.
         /// </summary>
-        public static PIC operator +(PIC Left, PIC Right) {
-            Left.Eliminated = Right.Eliminated = true;
-            return new PIC(Left.Minterms.Concat(Right.Minterms).ToArray(), Left.JoinDiffs | Right.JoinDiffs, Left.ColumnIndex + 1);
+        public static PIC operator +(PIC higher, PIC lower) {
+            higher.Eliminated = lower.Eliminated = true;
+            return new PIC(higher.Minterms.Concat(lower.Minterms).ToArray(), higher.JoinDiffs | Math.Abs(higher.Minterms[0] - lower.Minterms[0]), higher.ColumnIndex + 1);
+        }
+
+        /// <summary>
+        /// Megállapítja hogy két sor összevonható-e.
+        /// </summary>
+        public static bool CanJoin(PIC higher, PIC lower)
+        {
+            //Nem így specifikált, de praktikus és gyors előszűrés.
+            if (higher.JoinDiffs != lower.JoinDiffs) return false;
+            //legegyszerűbb és leggyorsabb hogy megállapítsuk, a felső szám(-összevonás) nagyobb-e. Elvileg mindíg rendezett a sor,
+            //így nem kell végig menni
+            if (higher.Minterms[0] > lower.Minterms[0]) return false;
+            //Ellenőrizzük az összes mintermszámot. ha mindegyik különbsége egyenlő, a sorok összevonhatók.
+            var diffSum = higher.Minterms.Zip(lower.Minterms, (l, r) => l - r).Distinct().Select(n => Math.Abs(n));
+            return diffSum.Count() == 1 && Ops.isPow2(diffSum.First());
         }
 
         //formázás ugyanaz mint a munkaf-ben
@@ -57,7 +72,9 @@ namespace quine_McCluskey.Framework
             StringBuilder sb = new StringBuilder();
             sb.Append(string.Join(", ", Minterms));
             if (JoinDiffs != 0)
-                sb.Append(string.Format(" ({0})", string.Join(" ", Ops.BreakupImplicants(JoinDiffs))));
+                sb.Append(string.Format(" ({0})", string.Join(", ", Ops.BreakupImplicants(JoinDiffs))));
+            if (Eliminated)
+                sb.Append("✓");
             return sb.ToString();
         }
 
@@ -65,16 +82,15 @@ namespace quine_McCluskey.Framework
         {
             var other = obj as PIC;
             if (obj == null) return false;
-            //technikailag nem kell két irányba hasonlítgatni mert mindig ugyanannyi eleme lesz az összehasonlítandó soroknak,
-            //de kezdek fáradni, az idiótabiztosság jót tesz.
-            return other.Minterms.Except(Minterms).Count() == 0 && Minterms.Except(other.Minterms).Count() == 0;
+            if (other.Minterms.Length != Minterms.Length) return false;
+            return JoinDiffs == other.JoinDiffs && other.Minterms.Except(Minterms).Count() == 0;
         }
 
         // VS egész jó hash funkciókat generál, ez nem az én kreálmányom hanem autógenerált
         public override int GetHashCode()
         {
             int hashCode = -1872184839;
-            hashCode = hashCode * -1521134295 + EqualityComparer<long[]>.Default.GetHashCode(Minterms);
+            hashCode ^= (int)JoinDiffs * (int)Minterms.Last();
             return hashCode;
         }
 

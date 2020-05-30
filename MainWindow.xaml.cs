@@ -21,14 +21,90 @@ namespace quine_McCluskey
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        Q_McC Current;
+
         public MainWindow()
         {
             InitializeComponent();
-            Q_McC qmcc = new Q_McC(new[] { 1l, 8l, 3l, 5l, 17l, 12l, 23l, 24l, 7l, 19l, 11l, 21l, 28l });
+            Random rnd = new Random();
+            for (int i = 0; i < 128; i++)
+            {
+                InputBox.Children.Add(new TextBox() {
+                    MinWidth = 20,
+                }); ;
+            }
+        }
+
+        private void RandomB_Click(object sender, RoutedEventArgs e)
+        {
+            Random random = new Random();
+            foreach (var textbox in InputBox.Children)
+            {
+                var tb = textbox as TextBox;
+                if (random.NextDouble() > .0)
+                {
+                    tb.Text = random.Next(0, 200).ToString();
+                } else
+                {
+                    tb.Text = "0";
+                }
+                
+            }
+        }
+
+        private void StartB_Click(object sender, RoutedEventArgs e)
+        {
+            List<long> list = new List<long>();
+            foreach (var textbox in InputBox.Children)
+            {
+                var tb = textbox as TextBox;
+                list.Add(long.Parse(tb.Text));
+            }
+
+            Current = new Q_McC(list.ToArray());
+
+            ColumnView.Children.Clear();
+
             Progress<Q_McC_ProgressReport> progress = new Progress<Q_McC_ProgressReport>();
-            progress.ProgressChanged += (o, e) => { Console.WriteLine(e); };
-            qmcc.CreateTable(progress);
-            Console.WriteLine(qmcc);
+            progress.ProgressChanged += (o, eArgs) => taskLbl.Content = eArgs.ToString();
+            Current.CreateTable(progress);
+
+            foreach (var column in Current.Columns)
+            {
+                Border brd = new Border() { BorderThickness = new Thickness(3), BorderBrush = Brushes.Gray };
+                Label lbl = new Label() { Content = column.ToString() };
+                brd.Child = lbl;
+                ColumnView.Children.Add(brd);
+            }
+        }
+
+        private void Wreck_Click(object sender, RoutedEventArgs e)
+        {
+            List<long> vs = new List<long>();
+            Random rnd = new Random();
+            for (int i = 0; i < 1000; i++)
+            {
+                vs.Add(rnd.Next(0, 2000));
+            }
+
+            Current = new Q_McC(Enumerable.Range(7, 1500).Select(n => (long)n).ToArray());
+
+            ColumnView.Children.Clear();
+
+            Progress<Q_McC_ProgressReport> progress = new Progress<Q_McC_ProgressReport>();
+            progress.ProgressChanged += (o, eArgs) => taskLbl.Content = eArgs.ToString();
+            Task.Run(() => Current.CreateTable(progress));
+            progress.ProgressChanged += (t, r) =>
+            {
+                foreach (var column in Current.Columns)
+                {
+                    Border brd = new Border() { BorderThickness = new Thickness(3), BorderBrush = Brushes.Gray };
+                    Label lbl = new Label() { Content = column.ToString() };
+                    brd.Child = lbl;
+                    ColumnView.Children.Add(brd);
+                }
+            };
         }
     }
 }
