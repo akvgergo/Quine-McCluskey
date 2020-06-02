@@ -1,0 +1,73 @@
+﻿<Window x:Class="quine_McCluskey.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:quine_McCluskey.UI"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="800" Width="800" MinHeight="800" MinWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="3*"/>
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Label x:Name="TaskLbl" Content="No Job..." Grid.Column="1"/>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Button x:Name="StartB" Content="Start calculation..." Grid.Row="0" Click="StartB_Click"/>
+                <Button x:Name="RandomB" Content="Randomize input" Grid.Row="1" Click="RandomB_Click"/>
+                <Button x:Name="WreckB" Content="Stress test" Grid.Row="2" Click="WreckB_Click"/>
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="9*"/>
+                </Grid.RowDefinitions>
+                <Button x:Name="ParseB" Content="Parse input..." Grid.Column="1"/>
+                <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2">
+                    <WrapPanel x:Name="InputBox">
+                        <local:NumberBox x:Name="FirstInput" Margin="4" TextChanged="HandleBoxInputs"/>
+                    </WrapPanel>
+                </ScrollViewer>
+                <TextBlock Text="Input Values:" Margin="6,0,0,0"/>
+            </Grid>
+        </Grid>
+        <TabControl x:Name="Tabs" Grid.Row="1">
+            <TabItem Header="Table">
+                <Grid Background="#FFE5E5E5">
+                    <ScrollViewer HorizontalScrollBarVisibility="Visible">
+                        <WrapPanel x:Name="TableView"/>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Prime implicants">
+                <Grid Background="#FFE5E5E5">
+                    <ScrollViewer>
+                        <StackPanel x:Name="ImplicantsView"/>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Function">
+                <Grid Background="#FFE5E5E5">
+                    <ScrollViewer>
+                        <WrapPanel x:Name="FunctionView"/>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

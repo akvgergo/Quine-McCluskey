@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace quine_McCluskey.Framework
 {
@@ -29,6 +30,11 @@ namespace quine_McCluskey.Framework
         public List<PIC> PrimeImplicates { get; }
 
         /// <summary>
+        /// Az egyszerűsítéshez szükséges prím implikánsok
+        /// </summary>
+        public List<PIC> NecessaryPIs { get; protected set; }
+
+        /// <summary>
         /// Létrehozza a legelső oszlopot, az elemeket szortírozva és csoportozva.
         /// </summary>
         /// <param name="minterms"></param>
@@ -52,7 +58,7 @@ namespace quine_McCluskey.Framework
         /// <summary>
         /// Itt történik a csoda. Ajánlott Async-ba futtatni, mivel időbe kerülhet
         /// </summary>
-        public void CreateTable(Progress<Q_McC_ProgressReport> progReport)
+        public async void CreateTable(Progress<Q_McC_ProgressReport> progReport)
         {
             //Egy oszlop befelyezése, valamint prím implikáns felfedezése olyan infó,
             //amit jó tudni ha esetleg sokáig futna a program.
@@ -96,6 +102,26 @@ namespace quine_McCluskey.Framework
             PrimeImplicates.AddRange(Columns.Last().SelectMany(wg => wg));
             repInfo.PrimeImplicantCount = PrimeImplicates.Count;
             rep.Report(repInfo);
+        }
+
+        /// <summary>
+        /// Megkeresi a legegyszerűbb alakot
+        /// </summary>
+        public List<PIC> GetMinimumImplicants()
+        {
+            List<PIC> list = new List<PIC>();
+
+            PrimeImplicates.Reverse();
+            HashSet<long> mins = Minterms.ToHashSet();
+            int count = 0;
+            while (mins.Count != 0)
+            {
+                mins.ExceptWith(PrimeImplicates[count].Minterms);
+                list.Add(PrimeImplicates[count++]);
+            }
+            NecessaryPIs = list;
+
+            return list;
         }
 
         public override string ToString()
